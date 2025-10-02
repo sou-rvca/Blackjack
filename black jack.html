@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ブラックジャック</title>
+  <style>
+    body {
+      background: #2e2e2e;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 36px;
+      color: #ffcc00;
+      text-shadow: 1px 1px 3px #000;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      margin-top: 30px;
+      color: #00ffff;
+    }
+
+    .hand {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 10px 0;
+      gap: 10px;
+    }
+
+    .hand img {
+      width: 80px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    }
+
+    button {
+      background-color: #007bff;
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #message {
+      font-size: 20px;
+      margin-top: 20px;
+      color: #ff6666;
+    }
+
+    #dealer-score, #player-score {
+      font-size: 18px;
+      margin: 10px;
+      color: #cccccc;
+    }
+
+    @media (max-width: 600px) {
+      .hand img {
+        width: 60px;
+      }
+
+      button {
+        font-size: 14px;
+        padding: 10px 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .section-title {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ブラックジャック</h1>
+
+  <div class="section-title">【ディーラー】</div>
+  <div id="dealer-hand" class="hand"></div>
+  <p id="dealer-score"></p>
+
+  <div class="section-title">【プレイヤー】</div>
+  <div id="player-hand" class="hand"></div>
+  <p id="player-score"></p>
+
+  <p id="message"></p>
+
+  <button id="hit">ヒット</button>
+  <button id="stand">スタンド</button>
+  <button id="new-game">新しいゲーム</button>
+
+  <script>
+    let deck = [];
+    const suits = ["spade", "heart", "diamond", "club"];
+    const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+
+    let playerHand = [];
+    let dealerHand = [];
+
+    const getCardValue = (card, currentTotal) => {
+      if (["J", "Q", "K"].includes(card.value)) return 10;
+      if (card.value === "A") return currentTotal <= 10 ? 11 : 1;
+      return parseInt(card.value);
+    };
+
+    function initializeDeck() {
+      deck = [];
+      for (let suit of suits) {
+        for (let value of values) {
+          deck.push({ suit: suit, value: value });
+        }
+      }
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+    }
+
+    function drawCard() {
+      if (deck.length === 0) initializeDeck();
+      return deck.pop();
+    }
+
+    function calculateHandValue(hand) {
+      let total = 0;
+      let hasAce = false;
+      for (let card of hand) {
+        if (card.value === "A") hasAce = true;
+        total += getCardValue(card, total);
+      }
+      if (hasAce && total + 10 <= 21) total += 10;
+      return total;
+    }
+
+    function displayHand(hand, elementId, hideFirstCard = false) {
+      const handElement = document.getElementById(elementId);
+      handElement.innerHTML = "";
+      hand.forEach((card, index) => {
+        const cardImg = document.createElement("img");
+        cardImg.src = hideFirstCard && index === 0 ? "card-back.png" : `${card.suit}${card.value}.png`;
+        cardImg.alt = hideFirstCard && index === 0 ? "Hidden Card" : `${card.value} of ${card.suit}`;
+        handElement.appendChild(cardImg);
+      });
+    }
+
+    function updateGameState() {
+      displayHand(playerHand, "player-hand");
+      displayHand(dealerHand, "dealer-hand", true);
+      document.getElementById("player-score").textContent = `プレイヤーの得点: ${calculateHandValue(playerHand)}`;
+    }
+
+    function startNewGame() {
+      initializeDeck();
+      playerHand = [drawCard(), drawCard()];
+      dealerHand = [drawCard(), drawCard()];
+      document.getElementById("hit").disabled = false;
+      document.getElementById("stand").disabled = false;
+      document.getElementById("message").textContent = "";
+      document.getElementById("dealer-score").textContent = "";
+      updateGameState();
+    }
+
+    function playerHit() {
+      playerHand.push(drawCard());
+      const playerScore = calculateHandValue(playerHand);
+      updateGameState();
+      if (playerScore > 21) {
+        endGame("プレイヤーがバーストしました。ディーラーの勝ちです！");
+      }
+    }
+
+    function playerStand() {
+      document.getElementById("hit").disabled = true;
+      document.getElementById("stand").disabled = true;
+
+      displayHand(dealerHand, "dealer-hand");
+      let dealerScore = calculateHandValue(dealerHand);
+      document.getElementById("dealer-score").textContent = `ディーラーの得点: ${dealerScore}`;
+
+      while (dealerScore < 17) {
+        dealerHand.push(drawCard());
+        dealerScore = calculateHandValue(dealerHand);
+        displayHand(dealerHand, "dealer-hand");
+        document.getElementById("dealer-score").textContent = `ディーラーの得点: ${dealerScore}`;
+      }
+
+      const playerScore = calculateHandValue(playerHand);
+      if (dealerScore > 21) {
+        endGame("ディーラーがバーストしました。プレイヤーの勝ちです！");
+      } else if (dealerScore > playerScore) {
+        endGame("ディーラーの勝ちです！");
+      } else if (dealerScore < playerScore) {
+        endGame("プレイヤーの勝ちです！");
+      } else {
+        endGame("引き分けです！");
+      }
+    }
+
+    function endGame(message) {
+      document.getElementById("message").textContent = message;
+      document.getElementById("hit").disabled = true;
+      document.getElementById("stand").disabled = true;
+      displayHand(dealerHand, "dealer-hand");
+      document.getElementById("dealer-score").textContent = `ディーラーの得点: ${calculateHandValue(dealerHand)}`;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("hit").addEventListener("click", playerHit);
+      document.getElementById("stand").addEventListener("click", playerStand);
+      document.getElementById("new-game").addEventListener("click", startNewGame);
+      startNewGame();
+    });
+  </script>
+</body>
+</html>
