@@ -5,18 +5,30 @@
   <title>ブラックジャック</title>
   <style>
     body {
-      background: #2e2e2e;
+      background: #1d693a;
       color: #fff;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Georgia', 'Times New Roman', serif;
       text-align: center;
       padding: 20px;
+    }
+
+    .game-area {
+      background-color: rgb(21 128 61);
+      border-radius: 1.5rem;
+      box-shadow: 0 25px 50px -12px rgb(0, 0, 0, 0.25);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      border: 4px solid #ffcc00;
     }
 
     h1 {
       font-size: 36px;
       color: #ffcc00;
-      text-shadow: 1px 1px 3px #000;
+      text-shadow: 2px 2px 4px #000;
       margin-bottom: 20px;
+      font-family: 'Georgia', serif;
+      font-weight: bold;
+      letter-spacing: 2px;
     }
 
     .section-title {
@@ -31,6 +43,8 @@
       flex-wrap: wrap;
       margin: 10px 0;
       gap: 10px;
+      min-height: 120px;
+      align-items: center;
     }
 
     .hand img {
@@ -38,34 +52,70 @@
       height: auto;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      animation: cardDeal 0.3s ease-out;
+    }
+
+    @keyframes cardDeal {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     button {
-      background-color: #007bff;
-      border: none;
-      color: white;
-      padding: 12px 24px;
+      background: linear-gradient(145deg, #2c5f2d, #1e4620);
+      border: 2px solid #ffcc00;
+      color: #ffcc00;
+      padding: 14px 28px;
       margin: 10px;
       font-size: 16px;
-      border-radius: 6px;
+      font-weight: bold;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      font-family: 'Georgia', serif;
+      letter-spacing: 1px;
     }
 
-    button:hover {
-      background-color: #0056b3;
+    button:hover:not(:disabled) {
+      background: linear-gradient(145deg, #3a7a3c, #2c5f2d);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(255,204,0,0.3);
+      border-color: #ffd700;
+      color: #ffd700;
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    button:disabled {
+      background: linear-gradient(145deg, #555, #444);
+      border-color: #666;
+      color: #888;
+      cursor: not-allowed;
+      opacity: 0.6;
     }
 
     #message {
       font-size: 20px;
       margin-top: 20px;
-      color: #ff6666;
+      color: #ffcc00;
+      font-weight: bold;
+      min-height: 30px;
     }
 
     #dealer-score, #player-score {
-      font-size: 18px;
+      font-size: 20px;
       margin: 10px;
-      color: #cccccc;
+      color: #ffffff;
+      font-weight: bold;
     }
 
     @media (max-width: 600px) {
@@ -89,23 +139,23 @@
   </style>
 </head>
 <body>
+  <div class="game-area">
+    <h1>BLACKJACK / ブラックジャック</h1>
 
-  <h1>ブラックジャック</h1>
+    <div class="section-title">【DEALER / ディーラー】</div>
+    <div id="dealer-hand" class="hand"></div>
+    <p id="dealer-score"></p>
 
-  <div class="section-title">【ディーラー】</div>
-  <div id="dealer-hand" class="hand"></div>
-  <p id="dealer-score"></p>
+    <div class="section-title">【PLAYER / プレイヤー】</div>
+    <div id="player-hand" class="hand"></div>
+    <p id="player-score"></p>
 
-  <div class="section-title">【プレイヤー】</div>
-  <div id="player-hand" class="hand"></div>
-  <p id="player-score"></p>
+    <p id="message"></p>
 
-  <p id="message"></p>
-
-  <button id="hit">ヒット</button>
-  <button id="stand">スタンド</button>
-  <button id="new-game">新しいゲーム</button>
-
+    <button id="hit">HIT / ヒット</button>
+    <button id="stand">STAND / スタンド</button>
+    <button id="new-game">NEW GAME / 新しいゲーム</button>
+  </div>
   <script>
     let deck = [];
     const suits = ["spade", "heart", "diamond", "club"];
