@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ブラックジャック</title>
+  <style>
+    body {
+      background: #1d693a;
+      color: #fff;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .game-area {
+      background-color: rgb(21 128 61);
+      border-radius: 1.5rem;
+      box-shadow: 0 25px 50px -12px rgb(0, 0, 0, 0.25);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      border: 4px solid #ffcc00;
+    }
+
+    h1 {
+      font-size: 36px;
+      color: #ffcc00;
+      text-shadow: 2px 2px 4px #000;
+      margin-bottom: 20px;
+      font-family: 'Georgia', serif;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      margin-top: 30px;
+      color: #00ffff;
+    }
+
+    .hand {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 10px 0;
+      gap: 10px;
+      min-height: 120px;
+      align-items: center;
+    }
+
+    .hand img {
+      width: 80px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      animation: cardDeal 0.3s ease-out;
+    }
+
+    @keyframes cardDeal {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    button {
+      background: linear-gradient(145deg, #2c5f2d, #1e4620);
+      border: 2px solid #ffcc00;
+      color: #ffcc00;
+      padding: 14px 28px;
+      margin: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      font-family: 'Georgia', serif;
+      letter-spacing: 1px;
+    }
+
+    button:hover:not(:disabled) {
+      background: linear-gradient(145deg, #3a7a3c, #2c5f2d);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(255,204,0,0.3);
+      border-color: #ffd700;
+      color: #ffd700;
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    button:disabled {
+      background: linear-gradient(145deg, #555, #444);
+      border-color: #666;
+      color: #888;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    #message {
+      font-size: 20px;
+      margin-top: 20px;
+      color: #ffcc00;
+      font-weight: bold;
+      min-height: 30px;
+    }
+
+    #dealer-score, #player-score {
+      font-size: 20px;
+      margin: 10px;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .hand img {
+        width: 60px;
+      }
+
+      button {
+        font-size: 14px;
+        padding: 10px 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .section-title {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-area">
+    <h1>BLACKJACK / ブラックジャック</h1>
+
+    <div class="section-title">【DEALER / ディーラー】</div>
+    <div id="dealer-hand" class="hand"></div>
+    <p id="dealer-score"></p>
+
+    <div class="section-title">【PLAYER / プレイヤー】</div>
+    <div id="player-hand" class="hand"></div>
+    <p id="player-score"></p>
+
+    <p id="message"></p>
+
+    <button id="hit">HIT / ヒット</button>
+    <button id="stand">STAND / スタンド</button>
+    <button id="new-game">NEW GAME / 新しいゲーム</button>
+  </div>
+  <script>
+    let deck = [];
+    const suits = ["spade", "heart", "diamond", "club"];
+    const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+
+    let playerHand = [];
+    let dealerHand = [];
+
+    const getCardValue = (card, currentTotal) => {
+      if (["J", "Q", "K"].includes(card.value)) return 10;
+      if (card.value === "A") return currentTotal <= 10 ? 11 : 1;
+      return parseInt(card.value);
+    };
+
+    function initializeDeck() {
+      deck = [];
+      for (let suit of suits) {
+        for (let value of values) {
+          deck.push({ suit: suit, value: value });
+        }
+      }
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+    }
+
+    function drawCard() {
+      if (deck.length === 0) initializeDeck();
+      return deck.pop();
+    }
+
+    function calculateHandValue(hand) {
+      let total = 0;
+      let hasAce = false;
+      for (let card of hand) {
+        if (card.value === "A") hasAce = true;
+        total += getCardValue(card, total);
+      }
+      if (hasAce && total + 10 <= 21) total += 10;
+      return total;
+    }
+
+    function displayHand(hand, elementId, hideFirstCard = false) {
+      const handElement = document.getElementById(elementId);
+      handElement.innerHTML = "";
+      hand.forEach((card, index) => {
+        const cardImg = document.createElement("img");
+        cardImg.src = hideFirstCard && index === 0 ? "card-back.png" : `${card.suit}${card.value}.png`;
+        cardImg.alt = hideFirstCard && index === 0 ? "Hidden Card" : `${card.value} of ${card.suit}`;
+        handElement.appendChild(cardImg);
+      });
+    }
+
+    function updateGameState() {
+      displayHand(playerHand, "player-hand");
+      displayHand(dealerHand, "dealer-hand", true);
+      document.getElementById("player-score").textContent = `プレイヤーの得点: ${calculateHandValue(playerHand)}`;
+    }
+
+    function startNewGame() {
+      initializeDeck();
+      playerHand = [drawCard(), drawCard()];
+      dealerHand = [drawCard(), drawCard()];
+      document.getElementById("hit").disabled = false;
+      document.getElementById("stand").disabled = false;
+      document.getElementById("message").textContent = "";
+      document.getElementById("dealer-score").textContent = "";
+      updateGameState();
+    }
+
+    function playerHit() {
+      playerHand.push(drawCard());
+      const playerScore = calculateHandValue(playerHand);
+      updateGameState();
+      if (playerScore > 21) {
+        endGame("プレイヤーがバーストしました。ディーラーの勝ちです！");
+      }
+    }
+
+    function playerStand() {
+      document.getElementById("hit").disabled = true;
+      document.getElementById("stand").disabled = true;
+
+      displayHand(dealerHand, "dealer-hand");
+      let dealerScore = calculateHandValue(dealerHand);
+      document.getElementById("dealer-score").textContent = `ディーラーの得点: ${dealerScore}`;
+
+      while (dealerScore < 17) {
+        dealerHand.push(drawCard());
+        dealerScore = calculateHandValue(dealerHand);
+        displayHand(dealerHand, "dealer-hand");
+        document.getElementById("dealer-score").textContent = `ディーラーの得点: ${dealerScore}`;
+      }
+
+      const playerScore = calculateHandValue(playerHand);
+      if (dealerScore > 21) {
+        endGame("ディーラーがバーストしました。プレイヤーの勝ちです！");
+      } else if (dealerScore > playerScore) {
+        endGame("ディーラーの勝ちです！");
+      } else if (dealerScore < playerScore) {
+        endGame("プレイヤーの勝ちです！");
+      } else {
+        endGame("引き分けです！");
+      }
+    }
+
+    function endGame(message) {
+      document.getElementById("message").textContent = message;
+      document.getElementById("hit").disabled = true;
+      document.getElementById("stand").disabled = true;
+      displayHand(dealerHand, "dealer-hand");
+      document.getElementById("dealer-score").textContent = `ディーラーの得点: ${calculateHandValue(dealerHand)}`;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("hit").addEventListener("click", playerHit);
+      document.getElementById("stand").addEventListener("click", playerStand);
+      document.getElementById("new-game").addEventListener("click", startNewGame);
+      startNewGame();
+    });
+  </script>
+</body>
+</html>
