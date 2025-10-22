@@ -111,6 +111,66 @@
       min-height: 30px;
     }
 
+    .rules-screen {
+      display: block;
+    }
+
+    .game-screen {
+      display: none;
+    }
+
+    .rules-content {
+      background: rgba(0,0,0,0.3);
+      border-radius: 12px;
+      padding: 30px;
+      margin: 20px 0;
+      text-align: left;
+      border: 2px solid rgba(255,204,0,0.3);
+    }
+
+    .rules-content h2 {
+      color: #ffcc00;
+      font-size: 28px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .rules-content p {
+      font-size: 18px;
+      line-height: 1.8;
+      margin-bottom: 15px;
+      color: #ffffff;
+    }
+
+    .rules-content ul {
+      margin: 15px 0;
+      padding-left: 30px;
+    }
+
+    .rules-content li {
+      font-size: 18px;
+      line-height: 1.8;
+      margin-bottom: 10px;
+      color: #ffffff;
+    }
+
+    #start-game {
+      background: linear-gradient(145deg, #d4af37, #b8941e);
+      border: 2px solid #ffd700;
+      color: #1d693a;
+      padding: 18px 40px;
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 30px;
+      box-shadow: 0 6px 12px rgba(212,175,55,0.4);
+    }
+
+    #start-game:hover {
+      background: linear-gradient(145deg, #ffd700, #d4af37);
+      box-shadow: 0 8px 16px rgba(255,215,0,0.5);
+      border-color: #ffed4e;
+    }
+
     #dealer-score, #player-score {
       font-size: 20px;
       margin: 10px;
@@ -140,21 +200,55 @@
 </head>
 <body>
   <div class="game-area">
-    <h1>BLACKJACK / ブラックジャック</h1>
+    <h1>ブラックジャック / BLACKJACK</h1>
 
-    <div class="section-title">【DEALER / ディーラー】</div>
-    <div id="dealer-hand" class="hand"></div>
-    <p id="dealer-score"></p>
+    <!-- ルール説明画面 -->
+    <div class="rules-screen">
+      <div class="rules-content">
+        <h2>ゲームルール / GAME RULES</h2>
+        
+        <p><strong>🎯 目的：</strong><br>
+        カードの合計を21に近づけ、ディーラーより高い点数を目指します。ただし、21を超えると負け（バースト）です。</p>
+        
+        <p><strong>🃏 カードの点数：</strong></p>
+        <ul>
+          <li>数字カード（2-10）：そのままの数字</li>
+          <li>絵札（J, Q, K）：10点</li>
+          <li>A（エース）：1点または11点（有利な方）</li>
+        </ul>
+        
+        <p><strong>📋 ゲームの流れ：</strong></p>
+        <ul>
+          <li>プレイヤーとディーラーに2枚ずつカードが配られます</li>
+          <li>ディーラーのカードは1枚が伏せられています</li>
+          <li><strong>ヒット：</strong>カードをもう1枚引く</li>
+          <li><strong>スタンド：</strong>これ以上カードを引かない</li>
+          <li>ディーラーは合計が17以上になるまでカードを引き続けます</li>
+        </ul>
+        
+        <p><strong>🏆 勝敗：</strong><br>
+        21に近い方が勝ち。21を超えたらバースト（負け）です。</p>
+      </div>
+      
+      <button id="start-game">ゲームスタート / START GAME</button>
+    </div>
 
-    <div class="section-title">【PLAYER / プレイヤー】</div>
-    <div id="player-hand" class="hand"></div>
-    <p id="player-score"></p>
+    <!-- ゲーム画面 -->
+    <div class="game-screen">
+      <div class="section-title">【ディーラー / DEALER】</div>
+      <div id="dealer-hand" class="hand"></div>
+      <p id="dealer-score"></p>
 
-    <p id="message"></p>
+      <div class="section-title">【プレイヤー / PLAYER】</div>
+      <div id="player-hand" class="hand"></div>
+      <p id="player-score"></p>
 
-    <button id="hit">HIT / ヒット</button>
-    <button id="stand">STAND / スタンド</button>
-    <button id="new-game">NEW GAME / 新しいゲーム</button>
+      <p id="message"></p>
+
+      <button id="hit">ヒット / HIT</button>
+      <button id="stand">スタンド / STAND</button>
+      <button id="new-game">新しいゲーム / NEW GAME</button>
+    </div>
   </div>
   <script>
     let deck = [];
@@ -272,10 +366,20 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      const rulesScreen = document.querySelector('.rules-screen');
+      const gameScreen = document.querySelector('.game-screen');
+      const startGameBtn = document.getElementById("start-game");
+      
+      // スタートボタンのイベント
+      startGameBtn.addEventListener("click", () => {
+        rulesScreen.style.display = "none";
+        gameScreen.style.display = "block";
+        startNewGame();
+      });
+      
       document.getElementById("hit").addEventListener("click", playerHit);
       document.getElementById("stand").addEventListener("click", playerStand);
       document.getElementById("new-game").addEventListener("click", startNewGame);
-      startNewGame();
     });
   </script>
 </body>
